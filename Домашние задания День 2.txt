@@ -93,5 +93,25 @@ SELECT c.FirstName,
           c.lastName;
 6	Покажите фамилии  клиентов которые  купили больше 30 музыкальных треков ?
 	Решить  задачу ,как минимум, 2-мя способами: джойнами и подзапросами
+	SELECT ifnull(sum( (
+                       SELECT sum(Quantity) 
+                         FROM sales_items AS si
+                        WHERE si.salesid = s.salesid AND 
+                              si.TrackId IN (
+                                  SELECT TrackId
+                                    FROM Tracks
+                              )
+                   )
+              ), 0) AS count_sales
+  FROM sales AS s
+ GROUP BY CustomerId;
 7	В базе есть таблица музыкальных треков и жанров Назовите среднюю стоимстость музыкального трека в каждом жанре?
+select  sum(UnitPrice)
+from tracks as t cross join genres as g
+on t.GenreId=g.GenreId 
+group by g.GenreId 
 8	В базе есть таблица музыкальных треков и жанров. Покажите жанры у которых средняя стоимость одного трека больше 1-го рубля
+select  Name, GenreId, count(*),sum(UnitPrice)
+from tracks as t cross join genres as g
+on t.GenreId=g.GenreId
+group by g.GenreId
