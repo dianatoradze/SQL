@@ -1,8 +1,53 @@
 	Задачи День 2:
 
 1	Посчитайте общую сумму продаж в США в 1 квартале 2012 года? Решить 2-мя  способами Джойнами и Подзапросами 
-2	Покажите имена клиентов, которых нет среди работников.
-	Решить 3-мя способами: подзапросами, джойнами и логическим вычитанием.
+SELECT SalesId,
+       ShipCountry,
+       count( * ) 
+  FROM sales AS s
+ WHERE SalesDate >= date('2012-01-01') AND 
+       SalesDate < date('2012-03-01') AND 
+       ShipCountry = 'USA'
+ GROUP BY ShipCountry;
+////////////////////////////
+SELECT c.FirstName,
+       c.lastName,
+       count( * ) 
+  FROM customers AS c
+       LEFT JOIN
+       sales AS s ON c.CustomerId = s.CustomerId AND 
+                     strftime('%Y', SalesDate) = '2012' AND 
+                     strftime('%m', SalesDate) >= '01' AND 
+                     strftime('%m', SalesDate) < '03'
+ WHERE ShipCountry = 'USA'
+ GROUP BY c.customerId,
+          c.FirstName,
+          c.lastName;
+2	Покажите имена клиентов, которых нет среди работников. Решить 3-мя способами: подзапросами, джойнами и логическим вычитанием.
+2.1
+SELECT FirstName,
+       lastName 
+  FROM customers  c
+       LEFT OUTER JOIN
+       employees  s ON c.CustomerId = s.EmployeeId    
+ GROUP BY s.FirstName
+	  2.2
+	  SELECT CustomerId, FirstName, LastName       
+FROM customers
+WHERE CustomerID NOT in (
+               SELECT CustomerID 
+                 FROM employees
+                WHERE CustomerId IS NULL)
+2.2 
+	   SELECT CustomerId, FirstName, lastName
+  FROM customers
+ WHERE NOT EXISTS (
+               SELECT *
+                 FROM employees
+                WHERE EmployeeId IS NULL AND 
+                      customers.CustomerId = employees.EmployeeId)
+ GROUP BY FirstName;
+
 3	Теоретический вопрос
 	Вернет ли данный запрос  одинаковый результат?  Да или НЕТ. 
 	Если  ДА. Объяснить почему.
@@ -16,10 +61,36 @@
 	 select *
 	 from T1 LEFT JOIN T2
 		ON T1.column1=T2.column1 and   T1.column1=0
-
+Вернет вторрй запрос больше строк, проверяла по предыдущему заданию
 4	Посчитайте количество треков в каждом альбоме. В результате должно быть:  имя альбома и кол-во треков.
+SELECT Title,
+       AlbumId,
+       (select  count( * ) from tracks
+       where tracks.AlbumId = t.AlbumId
+       )
+     as count_tracks 
+  FROM albums AS t
+  ////////////////////////
+SELECT c.Title,
+       c.AlbumId,
+       count( * ) 
+  FROM albums AS c
+       INNER JOIN
+       tracks AS s ON c.AlbumId = s.AlbumId
+ GROUP BY c.Title;
 	Решить  2-мя способами: подзапросом и джойнами 
 5	Покажите фамилию и имя покупателей немцев сделавших заказы в 2009 году, товары которых были отгружены в город Берлин?
+SELECT c.FirstName,
+       c.lastName,
+       count( * ) 
+  FROM customers AS c
+       INNER JOIN
+       sales AS s ON c.CustomerId = s.CustomerId AND 
+                     strftime('%Y', SalesDate) = '2009' AND 
+                     ShipCountry = 'Germany' AND 
+                     ShipCity = 'Berlin'
+ GROUP BY c.FirstName,
+          c.lastName;
 6	Покажите фамилии  клиентов которые  купили больше 30 музыкальных треков ?
 	Решить  задачу ,как минимум, 2-мя способами: джойнами и подзапросами
 7	В базе есть таблица музыкальных треков и жанров Назовите среднюю стоимстость музыкального трека в каждом жанре?
